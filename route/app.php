@@ -11,3 +11,6 @@
 use think\facade\Route;
 
 Route::get('/', 'index/index');
+Route::post('/register', 'index/register');
+Route::post('/login', 'index/login');
+Route::get('/notes', 'note/index');
