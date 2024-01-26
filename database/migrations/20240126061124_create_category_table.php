@@ -3,7 +3,7 @@
 use think\migration\Migrator;
 use think\migration\db\Column;
 
-class CreateNoteTable extends Migrator
+class CreateCategoryTable extends Migrator
 {
     /**
      * Change Method.
@@ -28,12 +28,14 @@ class CreateNoteTable extends Migrator
      */
     public function change()
     {
-        $table = $this->table('note');
+        $table = $this->table('category', [
+            'comment' => '笔记分类（文件夹）',
+            'engine' => 'InnoDB',
+            'collation' => 'utf8mb4_general_ci'
+        ]);
         $table->addColumn('user_id', 'integer', ['limit' => 7, 'default' => 0, 'comment' => '用户ID'])
-            ->addColumn('dir_id', 'integer', ['limit' => 7, 'default' => 0, 'comment' => '所在文件夹ID'])
-            ->addColumn('title', 'string', ['limit' => 255, 'default' => '', 'comment' => '标题'])
-            ->addColumn('content', 'text', ['comment' => '内容'])
-            ->addColumn('status', 'integer', ['limit' => 1, 'default' => 0, 'comment' => '状态。0 正常，1 已删除。'])
+            ->addColumn('parent_id', 'integer', ['limit' => 7, 'default' => 0, 'comment' => '父级ID'])
+            ->addColumn('name', 'string', ['limit' => 255, 'default' => '', 'comment' => '标题'])
             ->addColumn('create_time', 'datetime', ['comment' => '创建时间'])
             ->addColumn('update_time', 'datetime', ['comment' => '更新时间'])
             ->create();
