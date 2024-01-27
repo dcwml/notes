@@ -28,14 +28,7 @@ class NoteController
      */
     public function get_list( Request $request, ClientService $clientService )
     {
-        $parent_id = $request->post('parent_id');
-        if ( ! $parent_id ) {
-            $parent_id = 0;
-        }
-        if ( ! is_numeric( $parent_id ) ) {
-            $parent_id = 0;
-        }
-        $parent_id = intval( $parent_id );
+        $parent_id = $request->post('parent/d');
         $user_id = $clientService->get_user_id();
         $categoryList = \app\model\Category::where('user_id', $user_id)->where('parent_id', $parent_id)->select();
         $list = Note::where('user_id', $user_id)
@@ -54,7 +47,7 @@ class NoteController
      * @param  \think\Request  $request
      * @return \think\Response
      */
-    public function save(Request $request)
+    public function save(Request $request, ClientService $clientService)
     {
         $validate = \think\facade\Validate::rule([
                 'title' => 'require|max:120',
@@ -67,29 +60,32 @@ class NoteController
             ])
             ;
         if ( ! $validate->check($request->post()) ) {
-            return $validate->getError();
+            return json([ 'error' => $validate->getError() ]);
         }
 
         $id = $request->post('id');
         $title = $request->post('title');
         $content = $request->post('content');
-        $model = new Note();
         if ( $id ) {
-            $model->where('id', $id)->update([
-                'title' => $title,
-                'content' => $content,
-                // 'update_time' => date('Y-m-d H:i:s'),
-            ]);
+            $note = Note::find($id);
+            if ( ! $note ) {
+                return json([ 'error' => 'note not found' ]);
+            }
+            if ( $note->user_id !== $clientService->get_user_id() ) {
+                return json([ 'error' => 'note not found.' ]);
+            }
+            $note->title = $title;
+            $note->content = $content;
+            $note->save();
+            return json($note);
         } else {
-            $model->insert([
-                'user_id' => 2,
-                'title' => $title,
-                'content' => $content,
-                // 'create_time' => date('Y-m-d H:i:s'),
-                // 'update_time' => date('Y-m-d H:i:s'),
-            ]);
+            $note = new Note();
+            $note->user_id = $clientService->get_user_id();
+            $note->title = $title;
+            $note->content = $content;
+            $note->save();
+            return json($note);
         }
-        return redirect('/notes');
     }
 
     /**
