@@ -30,7 +30,7 @@ class CreateNoteTable extends Migrator
     {
         $table = $this->table('note');
         $table->addColumn('user_id', 'integer', ['limit' => 7, 'default' => 0, 'comment' => '用户ID'])
-            ->addColumn('dir_id', 'integer', ['limit' => 7, 'default' => 0, 'comment' => '所在文件夹ID'])
+            ->addColumn('category_id', 'integer', ['limit' => 7, 'default' => 0, 'comment' => '分类（文件夹）ID'])
             ->addColumn('title', 'string', ['limit' => 255, 'default' => '', 'comment' => '标题'])
             ->addColumn('content', 'text', ['comment' => '内容'])
             ->addColumn('status', 'integer', ['limit' => 1, 'default' => 0, 'comment' => '状态。0 正常，1 已删除。'])

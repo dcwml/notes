@@ -5,6 +5,7 @@ namespace app\controller;
 
 use think\Request;
 use app\model\Note;
+use app\service\ClientService;
 
 class NoteController
 {
@@ -25,9 +26,26 @@ class NoteController
      *
      * @return \think\Response
      */
-    public function create()
+    public function get_list( Request $request, ClientService $clientService )
     {
-        //
+        $parent_id = $request->post('parent_id');
+        if ( ! $parent_id ) {
+            $parent_id = 0;
+        }
+        if ( ! is_numeric( $parent_id ) ) {
+            $parent_id = 0;
+        }
+        $parent_id = intval( $parent_id );
+        $user_id = $clientService->get_user_id();
+        $categoryList = \app\model\Category::where('user_id', $user_id)->where('parent_id', $parent_id)->select();
+        $list = Note::where('user_id', $user_id)
+            ->where('category_id', $parent_id)
+            ->where('status', 0)
+            ->select();
+        return json([
+            'categories' => $categoryList,
+            'notes' => $list
+        ]);
     }
 
     /**

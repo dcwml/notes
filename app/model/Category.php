@@ -8,15 +8,13 @@ use think\Model;
 /**
  * @mixin \think\Model
  */
-class Note extends Model
+class Category extends Model
 {
     protected $schema = [
         'id' => 'integer',
         'user_id' => 'integer',
-        'category_id' => 'integer',
-        'title' => 'string',
-        'content' => 'text',
-        'status' => 'integer', // 0 normal, 1 deleted
+        'parent_id' => 'integer',
+        'name' => 'string',
         'create_time' => 'datetime',
         'update_time' => 'datetime',
     ];

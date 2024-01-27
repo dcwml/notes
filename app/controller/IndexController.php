@@ -1,9 +1,10 @@
 <?php
 namespace app\controller;
 
+use think\Request;
 use app\BaseController;
 use app\model\User;
-use think\Request;
+use app\model\Client;
 
 class IndexController extends BaseController
 {
@@ -52,7 +53,7 @@ class IndexController extends BaseController
         return redirect('/');
     }
 
-    public function login ( Request $request ) {
+    public function login ( Request $request, \app\service\ClientService $clientService ) {
         $validate = \think\facade\Validate::rule([
                 'name'  => 'require|max:32',
                 'password'   => 'require|min:6|max:32',
@@ -64,39 +65,46 @@ class IndexController extends BaseController
             ])
             ;
         if ( ! $validate->check($request->post()) ) {
-            return $validate->getError();
+            return json([ 'error' => $validate->getError() ]);
         }
 
         $user = User::where('name', $request->post('name'))->find();
         if ( ! $user ) {
-            return '用户名或者密码不正确';
+            return json([ 'error' => '用户名或者密码不正确' ]);
         }
         if ( $user->status === 0 ) {
-            return '用户尚未激活';
+            return json([ 'error' => '用户尚未激活' ]);
         }
         if ( $user->status === 2 ) {
-            return '用户已禁止登录';
+            return json([ 'error' => '用户已禁止登录' ]);
         }
         if ( $user->status === 3 ) {
             if ( $user->failed_login_count >= 3 ) {
                 if ( time() - strtotime($user->last_failed_login_time) < ( $user->failed_login_count * 60 ) ) {
-                    return '用户已被锁定至 ' . date('Y-m-d H:i:s', strtotime($user->last_failed_login_time) + ( $user->failed_login_count * 60 )) . ' 请稍后再试';
+                    return json([ 'error' => '用户已被锁定至 ' . date('Y-m-d H:i:s', strtotime($user->last_failed_login_time) + ( $user->failed_login_count * 60 )) . ' 请稍后再试' ]);
                 }
             }
         }
         if ( $user->status === 4 ) {
-            return '用户名或者密码不正确！';
+            return json([ 'error' => '用户名或者密码不正确！' ]);
         }
         if ( ! password_verify( $request->post('password'), $user->password ) ) {
             $user->failed_login_count++;
             $user->last_failed_login_time = date('Y-m-d H:i:s');
             $user->save();
-            return '用户名或者密码不正确。';
+            return json([ 'error' => '用户名或者密码不正确。' ]);
         }
         $user->failed_login_count = 0;
         $user->last_login_time = date('Y-m-d H:i:s');
         $user->last_login_ip = $request->ip();
         $user->save();
-        return redirect('/notes');
+        $clientService->set_client_data('user_id', $user->id);
+        // return redirect('/notes');
+        // return json($user->hidden(['password'])->toArray());
+        return json($user->visible(['id', 'name', 'email'])->toArray());
+    }
+
+    public function get_client_info( \app\service\ClientService $service ) {
+        $service->set_client_data('qwert', '123');
     }
 }
