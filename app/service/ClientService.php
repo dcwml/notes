@@ -84,7 +84,7 @@ class ClientService extends \think\Service
         return $this->get_client_data('user_id');
     }
 
-    public function set_user_id ( $user_id ) {
+    public function set_user_id ( int $user_id ) {
         $this->set_client_data('user_id', $user_id);
     }
 }

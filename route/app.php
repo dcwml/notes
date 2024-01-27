@@ -20,5 +20,6 @@ Route::group(function () {
 	Route::post('/note/get_list', 'note/get_list');
 	Route::post('/note/save', 'note/save');
 
-	Route::post('/category/list', 'category/list');
+	// Route::post('/category/list', 'category/list');
+	Route::post('/category/create', 'category/create');
 })->middleware(\app\middleware\ApiAuth::class);
