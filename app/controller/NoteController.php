@@ -28,17 +28,17 @@ class NoteController
      */
     public function get_list( Request $request, ClientService $clientService )
     {
-        $parent_id = $request->post('parent/d');
         $user_id = $clientService->get_user_id();
-        $categoryList = \app\model\Category::where('user_id', $user_id)->where('parent_id', $parent_id)->select();
-        $list = Note::where('user_id', $user_id)
-            ->where('category_id', $parent_id)
-            ->where('status', 0)
-            ->select();
-        return json([
-            'categories' => $categoryList,
-            'notes' => $list
-        ]);
+        $categoryList = \app\model\Category::where('user_id', $user_id)->select();
+        $notes = \app\model\Note::where('user_id', $user_id)->select();
+        $list = [];
+        foreach ( $categoryList as $category ) {
+            $list[] = $category->hidden([ 'user_id', 'create_time', 'update_time' ]);
+        }
+        foreach ( $notes as $note ) {
+            $list[] = $note->hidden([ 'user_id', 'content' ]);
+        }
+        return json($list);
     }
 
     /**
@@ -81,6 +81,7 @@ class NoteController
         } else {
             $note = new Note();
             $note->user_id = $clientService->get_user_id();
+            $note->category_id = $request->post('category_id/d');
             $note->title = $title;
             $note->content = $content;
             $note->save();
@@ -88,15 +89,24 @@ class NoteController
         }
     }
 
-    /**
-     * 显示指定的资源
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function read($id)
+    public function get( Request $request, ClientService $clientService )
     {
-        //
+        $validate = \think\facade\Validate::rule([
+            'id' => 'require|min:1|max:7|number|integer',
+        ]);
+        if ( ! $validate->check($request->post()) ) {
+            return json([ 'error' => $validate->getError() ]);
+        }
+        $id = $request->post('id/d');
+        $user_id = $clientService->get_user_id();
+        $note = Note::find($id);
+        if ( ! $note ) {
+            return json([ 'error' => 'note not found' ]);
+        }
+        if ( $note->user_id !== $user_id ) {
+            return json([ 'error' => 'note not found.' ]);
+        }
+        return json($note);
     }
 
     /**

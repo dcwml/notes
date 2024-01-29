@@ -12,17 +12,10 @@ use think\facade\Validate;
 class CategoryController extends BaseController
 {
 
-    public function list( Request $request )
+    public function list( Request $request, ClientService $clientService )
     {
-        // if ( ! $request->has('parent_id', 'post') ) {
-        //     return 'parent_id is required';
-        // }
-
-        // $parent_id = $request->post('parent_id');
-        // $list = Category::where('parent_id', $parent_id)
-        //     ->where('user_id', 2)
-        //     ->select();
-        // return json($list);
+        $list = Category::where('user_id', $clientService->get_user_id())->select();
+        return json([ 'list' => $list ]);
     }
 
     public function create( Request $request, ClientService $clientService )

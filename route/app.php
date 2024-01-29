@@ -19,7 +19,9 @@ Route::group(function () {
 	Route::get('/notes', 'note/index');
 	Route::post('/note/get_list', 'note/get_list');
 	Route::post('/note/save', 'note/save');
+	Route::post('/note/get', 'note/get');
 
-	// Route::post('/category/list', 'category/list');
+	Route::post('/category/list', 'category/list');
 	Route::post('/category/create', 'category/create');
+	Route::post('/category/rename', 'category/rename');
 })->middleware(\app\middleware\ApiAuth::class);
