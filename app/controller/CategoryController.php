@@ -22,7 +22,7 @@ class CategoryController extends BaseController
     {
         $validate = \think\facade\Validate::rule([
                 'parent'  => 'require|min:1|max:7|number|integer',
-                'name'   => 'require|min:1|max:16',
+                'name'   => 'require|min:1|max:64',
             ])
             ->message([
                 // 'name.require' => '用户名必须填写',
@@ -55,7 +55,7 @@ class CategoryController extends BaseController
     public function rename ( Request $request, ClientService $clientService ) {
         $validate = \think\facade\Validate::rule([
             'id'  => 'require|min:1|max:7|number|integer',
-            'name'   => 'require|min:1|max:16',
+            'name'   => 'require|min:1|max:64',
         ])->message([]);
         if ( ! $validate->check($request->post()) ) {
             return json([ 'error' => $validate->getError() ]);
