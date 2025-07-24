@@ -107,4 +107,46 @@ class IndexController extends BaseController
     public function get_client_info( \app\service\ClientService $service ) {
         $service->set_client_data('qwert', '123');
     }
+
+    public function changePassword( Request $request, \app\service\ClientService $clientService ) {
+        $validate = \think\facade\Validate::rule([
+                'old_password' => 'require|min:6|max:32',
+                'new_password' => 'require|min:6|max:32',
+                'confirm_password' => 'require|min:6|max:32',
+            ])
+            ->message([
+                'old_password.require' => '原密码必须填写',
+                'new_password.require' => '新密码必须填写',
+                'confirm_password.require' => '确认密码必须填写',
+                'new_password.min' => '新密码至少6位',
+                'confirm_password.min' => '确认密码至少6位',
+            ]);
+
+        if ( ! $validate->check($request->post()) ) {
+            return json([ 'error' => $validate->getError() ]);
+        }
+
+        if ( $request->post('new_password') !== $request->post('confirm_password') ) {
+            return json([ 'error' => '新密码与确认密码不一致' ]);
+        }
+
+        $user_id = $clientService->get_client_data('user_id');
+        if ( ! $user_id ) {
+            return json([ 'error' => '用户未登录' ]);
+        }
+
+        $user = User::find($user_id);
+        if ( ! $user ) {
+            return json([ 'error' => '用户不存在' ]);
+        }
+
+        if ( ! password_verify( $request->post('old_password'), $user->password ) ) {
+            return json([ 'error' => '原密码不正确' ]);
+        }
+
+        $user->password = password_hash( $request->post('new_password'), PASSWORD_BCRYPT );
+        $user->save();
+
+        return json([ 'success' => '密码修改成功' ]);
+    }
 }

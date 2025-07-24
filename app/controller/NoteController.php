@@ -142,4 +142,68 @@ class NoteController
     {
         //
     }
+
+    /**
+     * 搜索笔记
+     *
+     * @param  \think\Request  $request
+     * @param  ClientService  $clientService
+     * @return \think\Response
+     */
+    public function search(Request $request, ClientService $clientService)
+    {
+        $validate = \think\facade\Validate::rule([
+            'keyword' => 'max:100',
+            'category_id' => 'integer',
+            'limit' => 'integer|between:1,100',
+            'page' => 'integer|min:1'
+        ]);
+        
+        if (!$validate->check($request->param())) {
+            return json(['error' => $validate->getError()]);
+        }
+        
+        $user_id = $clientService->get_user_id();
+        $keyword = $request->param('keyword', '');
+        $category_id = $request->param('category_id/d', 0);
+        $limit = $request->param('limit/d', 20);
+        $page = $request->param('page/d', 1);
+        
+        $query = Note::with(['category'])
+            ->where('user_id', $user_id);
+        
+        if (!empty($keyword)) {
+            $query->where(function($q) use ($keyword) {
+                $q->where('title', 'like', '%' . $keyword . '%')
+                  ->whereOr('content', 'like', '%' . $keyword . '%');
+            });
+        }
+        
+        if ($category_id > 0) {
+            $query->where('category_id', $category_id);
+        }
+        
+        $total = $query->count();
+        $notes = $query->order('update_time', 'desc')
+            ->limit($limit)
+            ->page($page)
+            ->select();
+        
+        $list = [];
+        foreach ($notes as $note) {
+            $noteData = $note->toArray();
+            unset($noteData['user_id']);
+            if ($note->category) {
+                $noteData['category'] = $note->category->hidden(['user_id', 'create_time', 'update_time'])->toArray();
+            }
+            $list[] = $noteData;
+        }
+        
+        return json([
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'data' => $list
+        ]);
+    }
 }

@@ -20,4 +20,9 @@ class Note extends Model
         'create_time' => 'datetime',
         'update_time' => 'datetime',
     ];
+    
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 }

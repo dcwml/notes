@@ -20,8 +20,11 @@ Route::group(function () {
 	Route::post('/note/get_list', 'note/get_list');
 	Route::post('/note/save', 'note/save');
 	Route::post('/note/get', 'note/get');
+	Route::get('/note/search', 'note/search');
 
 	Route::post('/category/list', 'category/list');
 	Route::post('/category/create', 'category/create');
 	Route::post('/category/rename', 'category/rename');
+
+	Route::post('/change_password', 'index/changePassword');
 })->middleware(\app\middleware\ApiAuth::class);
